@@ -16,6 +16,7 @@
 
 package org.tensorflow.lite.examples.detection;
 
+import android.content.SharedPreferences;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
@@ -25,12 +26,33 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.RectF;
 import android.graphics.Typeface;
+import android.location.Location;
+import android.location.LocationManager;
 import android.media.ImageReader.OnImageAvailableListener;
+import android.media.MediaRecorder;
+import android.os.AsyncTask;
 import android.os.SystemClock;
 import android.util.Size;
 import android.util.TypedValue;
+import android.view.Surface;
+import android.view.SurfaceHolder;
+import android.widget.TextView;
 import android.widget.Toast;
+
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
+import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.lang.reflect.Array;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.LinkedList;
 import java.util.List;
 import org.tensorflow.lite.examples.detection.customview.OverlayView;
@@ -83,6 +105,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   private byte[] luminanceCopy;
 
   private BorderedText borderedText;
+  private int count=0;//记录人数
 
   @Override
   public void onPreviewSizeChosen(final Size size, final int rotation) {
@@ -183,7 +206,6 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     if (SAVE_PREVIEW_BITMAP) {
       ImageUtils.saveBitmap(croppedBitmap);
     }
-
     runInBackground(
         new Runnable() {
           @Override
@@ -206,22 +228,96 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                 minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
                 break;
             }
-
             final List<Classifier.Recognition> mappedRecognitions =
                 new LinkedList<Classifier.Recognition>();
-
+            count=0;//记录人数
             for (final Classifier.Recognition result : results) {
               final RectF location = result.getLocation();
-              if (location != null && result.getConfidence() >= minimumConfidence) {
+              if (location != null && result.getConfidence() >= minimumConfidence && result.getTitle().equals("person")) {//可以在这改
+               System.out.println("Result"+result.getTitle()+result.getId());
+                count++;
                 canvas.drawRect(location, paint);
-
                 cropToFrameTransform.mapRect(location);
-
                 result.setLocation(location);
                 mappedRecognitions.add(result);
               }
             }
+            System.out.println(count);//记录人数
+              //人数实时上报服务器
+            SharedPreferences sharedPre=getSharedPreferences("config", MODE_PRIVATE);
+            final String username=sharedPre.getString("username", "");
+            final String threshold=sharedPre.getString("threshold", "");
+            String mobiletype=android.os.Build.MODEL;
+            new AsyncTask<String, Void, String>() {
+              @Override
+              protected String doInBackground(String... strings) {
+                try {
+                  URL url = new URL(strings[0]);
+                  HttpURLConnection coon = (HttpURLConnection) url.openConnection();
+                  coon.setDoOutput(true);
+                  coon.setRequestMethod("POST");
+                  DataOutputStream out = new DataOutputStream(coon.getOutputStream());
+                  out.writeBytes("username=" + username + "&count=" + count+"&mobiletype"+mobiletype);
+                  InputStream is = coon.getInputStream();
+                  InputStreamReader isr = new InputStreamReader(is, "utf-8");
+                  BufferedReader br = new BufferedReader(isr);
+                  StringBuilder response = new StringBuilder();
+                  String line;
+                  while ((line = br.readLine()) != null) {
+                    response.append(line);
+                  }
+                  br.close();
+                  isr.close();
+                  out.close();
+                  return response.toString();
+                } catch (MalformedURLException e) {
+                  e.printStackTrace();
+                } catch (IOException e) {
+                  e.printStackTrace();
+                }
+                return null;
+              }
 
+              @Override
+              protected void onPostExecute(String s) {
+                if (s != null) {
+                  if (s.equals("0")) {
+                    System.out.println("上传失败！");
+                  } else {
+                    System.out.println("人数实时上传成功");
+                  }
+                  super.onPostExecute(s);
+                }
+              }
+            }.execute("http://39.96.169.188/count_app/");
+
+
+            if(count>Integer.parseInt(threshold)){//每次发送之前都检查threshold
+              SimpleDateFormat formatter  =   new   SimpleDateFormat    ("yyyy年MM月dd日_HH时mm分ss秒");
+              Date    curDate    =   new    Date(System.currentTimeMillis());//获取当前时间
+              String    str    =    formatter.format(curDate);
+
+              String filename=str+".png";
+              ImageUtils.saveBitmap(rgbFrameBitmap,filename);
+              //将异常图片上传至服务器
+//              ByteArrayOutputStream baos = new ByteArrayOutputStream();
+//              croppedBitmap.compress(Bitmap.CompressFormat.JPEG, 100, baos);
+//              byte[] datas = baos.toByteArray();
+//              System.out.println("bitmapArray:"+ Arrays.toString(datas));  ("");
+              File file =new File("/sdcard/tensorflow/"+filename);
+                new AsyncTask<String, Void, String>(){
+                    @Override
+                    protected String doInBackground(String... strings) {
+                        try {
+                            URL url = new URL(strings[0]);
+                            upload.uploadFile(file,"http://39.96.169.188/abnormal_image/",username);
+                        } catch (MalformedURLException e) {
+                            e.printStackTrace();
+                        }
+                        return null;
+                    }
+                }.execute("http://39.96.169.188/abnormal_image/");
+            }
             tracker.trackResults(mappedRecognitions, luminanceCopy, currTimestamp);
             trackingOverlay.postInvalidate();
 
@@ -234,6 +330,17 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                     showFrameInfo(previewWidth + "x" + previewHeight);
                     showCropInfo(cropCopyBitmap.getWidth() + "x" + cropCopyBitmap.getHeight());
                     showInference(lastProcessingTimeMs + "ms");
+                    TextView textView =findViewById(R.id.total_detected);
+                    TextView textView_hide =findViewById(R.id.total_detected_hide);
+                    textView_hide.setText(count+"");
+                    textView.setText("当前总人数: "+count+"");
+//                    if(count>0){
+//                      try {
+//                        record_start();
+//                      } catch (IOException e) {
+//                        e.printStackTrace();
+//                      }
+//                    }
                   }
                 });
           }
@@ -265,4 +372,28 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
   protected void setNumThreads(final int numThreads) {
     runInBackground(() -> detector.setNumThreads(numThreads));
   }
+//  protected void record_start() throws IOException {
+//    File file = new File("/sdcard/video.mp4");
+//                if (file.exists()) {
+//                      // 如果文件存在，删除它，演示代码保证设备上只有一个录音文件
+//                       file.delete();
+//                  }
+//    MediaRecorder mMediaRecorder = new MediaRecorder();
+////    mMediaRecorder.reset();
+////    mMediaRecorder.setPreviewDisplay(SurfaceHolder.getSurface());
+//    mMediaRecorder.setAudioSource(MediaRecorder.AudioSource.MIC);
+//    mMediaRecorder.setVideoSource(MediaRecorder.VideoSource.SURFACE);//Surface
+//    mMediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.MPEG_4);
+//    mMediaRecorder.setOutputFile(file.getAbsolutePath());
+//    mMediaRecorder.setVideoEncodingBitRate(10000000);
+//    mMediaRecorder.setVideoFrameRate(30);
+//    mMediaRecorder.setVideoSize(previewWidth, previewHeight);
+//    mMediaRecorder.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
+//    mMediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+//
+//    mMediaRecorder.prepare();
+//    mMediaRecorder.start();
+//
+//  }
+
 }

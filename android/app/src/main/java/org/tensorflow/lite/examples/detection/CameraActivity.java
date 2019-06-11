@@ -19,6 +19,8 @@ package org.tensorflow.lite.examples.detection;
 import android.Manifest;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
@@ -29,6 +31,8 @@ import android.media.Image;
 import android.media.Image.Plane;
 import android.media.ImageReader;
 import android.media.ImageReader.OnImageAvailableListener;
+import android.media.MediaRecorder;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
@@ -40,6 +44,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.SwitchCompat;
 import android.support.v7.widget.Toolbar;
 import android.util.Size;
+import android.view.KeyEvent;
 import android.view.Surface;
 import android.view.View;
 import android.view.ViewTreeObserver;
@@ -49,6 +54,19 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.qmuiteam.qmui.widget.dialog.QMUIDialog;
+import com.qmuiteam.qmui.widget.dialog.QMUIDialogAction;
+
+import java.io.BufferedReader;
+import java.io.DataOutputStream;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.nio.ByteBuffer;
 import org.tensorflow.lite.examples.detection.env.ImageUtils;
 import org.tensorflow.lite.examples.detection.env.Logger;
@@ -328,7 +346,67 @@ public abstract class CameraActivity extends AppCompatActivity
     LOGGER.d("onStop " + this);
     super.onStop();
   }
-
+  @Override
+  public boolean onKeyDown(int keyCode, KeyEvent event) {
+    if (keyCode == KeyEvent.KEYCODE_BACK) {
+      new QMUIDialog.MessageDialogBuilder(CameraActivity.this)
+              .setTitle("警告")
+              .setMessage("确定要退出吗")
+              .addAction(0,"确定", QMUIDialogAction.ACTION_PROP_NEGATIVE,new QMUIDialogAction.ActionListener() {
+                @Override
+                public void onClick(QMUIDialog dialog, int index) {
+                  dialog.dismiss();
+                  SharedPreferences sharedPre=getSharedPreferences("config", MODE_PRIVATE);
+                  final String username=sharedPre.getString("username", "");
+                  //停止数
+                  new AsyncTask<String, Void, String>() {
+                    @Override
+                    protected String doInBackground(String... strings) {
+                      try {
+                        URL url = new URL(strings[0]);
+                        HttpURLConnection coon = (HttpURLConnection) url.openConnection();
+                        coon.setDoOutput(true);
+                        coon.setRequestMethod("POST");
+                        DataOutputStream out = new DataOutputStream(coon.getOutputStream());
+                        out.writeBytes("username=" + username);
+                        InputStream is = coon.getInputStream();
+                        InputStreamReader isr = new InputStreamReader(is, "utf-8");
+                        BufferedReader br = new BufferedReader(isr);
+                        StringBuilder response = new StringBuilder();
+                        String line;
+                        while ((line = br.readLine()) != null) {
+                          response.append(line);
+                        }
+                        br.close();
+                        isr.close();
+                        out.close();
+                        return response.toString();
+                      } catch (MalformedURLException e) {
+                        e.printStackTrace();
+                      } catch (IOException e) {
+                        e.printStackTrace();
+                      }
+                      return null;
+                    }
+                    @Override
+                    protected void onPostExecute(String s) {
+                      if (s != null) {
+                        super.onPostExecute(s);
+                      }
+                    }
+                  }.execute("http://39.96.169.188/exit_count_app/");
+                  finish();
+                }
+              }).setCanceledOnTouchOutside(false).addAction( 0,"取消", new QMUIDialogAction.ActionListener() {
+        @Override
+        public void onClick(QMUIDialog dialog, int index) {
+          dialog.dismiss();
+        }
+      }).show();
+      return false;
+    }
+    return super.onKeyDown(keyCode, event);
+  }
   @Override
   public synchronized void onDestroy() {
     LOGGER.d("onDestroy " + this);
@@ -427,29 +505,34 @@ public abstract class CameraActivity extends AppCompatActivity
     String cameraId = chooseCamera();
 
     Fragment fragment;
-    if (useCamera2API) {
-      CameraConnectionFragment camera2Fragment =
-          CameraConnectionFragment.newInstance(
-              new CameraConnectionFragment.ConnectionCallback() {
-                @Override
-                public void onPreviewSizeChosen(final Size size, final int rotation) {
-                  previewHeight = size.getHeight();
-                  previewWidth = size.getWidth();
-                  CameraActivity.this.onPreviewSizeChosen(size, rotation);
-                }
-              },
-              this,
-              getLayoutId(),
-              getDesiredPreviewFrameSize());
-
-      camera2Fragment.setCamera(cameraId);
-      fragment = camera2Fragment;
-    } else {
-      fragment =
-          new LegacyCameraConnectionFragment(this, getLayoutId(), getDesiredPreviewFrameSize());
-    }
-
+    fragment =
+            new LegacyCameraConnectionFragment(this, getLayoutId(), getDesiredPreviewFrameSize());
     getFragmentManager().beginTransaction().replace(R.id.container, fragment).commit();
+//    ((LegacyCameraConnectionFragment) fragment).record_start();
+//    if (useCamera2API) {
+//      CameraConnectionFragment camera2Fragment =
+//          CameraConnectionFragment.newInstance(
+//              new CameraConnectionFragment.ConnectionCallback() {
+//                @Override
+//                public void onPreviewSizeChosen(final Size size, final int rotation) {
+//                  previewHeight = size.getHeight();
+//                  previewWidth = size.getWidth();
+//                  CameraActivity.this.onPreviewSizeChosen(size, rotation);
+//                }
+//              },
+//              this,
+//              getLayoutId(),
+//              getDesiredPreviewFrameSize());
+//
+//      camera2Fragment.setCamera(cameraId);
+//      fragment = camera2Fragment;
+//    } else {
+//      fragment =
+//          new LegacyCameraConnectionFragment(this, getLayoutId(), getDesiredPreviewFrameSize());
+////      ((LegacyCameraConnectionFragment) fragment).record_start();
+//
+//    }
+//    getFragmentManager().beginTransaction().replace(R.id.container, fragment).commit();
   }
 
   protected void fillBytes(final Plane[] planes, final byte[][] yuvBytes) {
@@ -539,4 +622,8 @@ public abstract class CameraActivity extends AppCompatActivity
   protected abstract void setNumThreads(int numThreads);
 
   protected abstract void setUseNNAPI(boolean isChecked);
+
+//  private void mr_stop(){
+//
+//  }
 }

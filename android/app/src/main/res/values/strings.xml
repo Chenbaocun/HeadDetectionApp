@@ -3,4 +3,7 @@
     <string name="description_info">Info</string>
     <string name="request_permission">This sample needs camera permission.</string>
     <string name="camera_error">This device doesn\'t support Camera2 API.</string>
+    <string name="linkTextView_auto_identify_word">\t\t\t本软件是《基于边缘计算的人流量云监管平台》边缘端程序，5G时代的到来，手机更将是边缘端智能设备的领导者，这是未来的趋势，也是我们选择安卓作为边缘端程序载体的原因。
+        此边缘端程序具有目标检测任务速度快的特性，但与此同时，由于手机端的计算能力有限，存在准确率较低的问题，为此我们在云端部署了精度更高的深度学习模型，使用边云协同的方式力求达到更好地用户体验。云端平台网址：http://39.96.169.188    \n（ps：建议用电脑访问，手机端样式可能会很乱o(╥﹏╥)o）
+    </string>
 </resources>

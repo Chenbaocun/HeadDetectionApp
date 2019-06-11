@@ -8,8 +8,8 @@
         android:layout_height="match_parent"
         android:background="#20616161"
         android:gravity="center"
-        android:text="A"
+        android:text="这应该是一个展示我关注地点实时人流量的Fragment"
         android:textColor="#ffffff"
-        android:textSize="100sp" />
+        android:textSize="20sp" />
 
 </android.support.constraint.ConstraintLayout>

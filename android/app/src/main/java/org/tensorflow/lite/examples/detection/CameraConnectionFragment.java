@@ -40,6 +40,7 @@ import android.hardware.camera2.TotalCaptureResult;
 import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
 import android.media.ImageReader.OnImageAvailableListener;
+import android.media.MediaRecorder;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.HandlerThread;
@@ -52,6 +53,9 @@ import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -108,6 +112,7 @@ public class CameraConnectionFragment extends Fragment {
             final CaptureRequest request,
             final TotalCaptureResult result) {}
       };
+
   /** ID of the current {@link CameraDevice}. */
   private String cameraId;
   /** An {@link AutoFitTextureView} for camera preview. */
@@ -370,6 +375,7 @@ public class CameraConnectionFragment extends Fragment {
         throw new RuntimeException("Time out waiting to lock camera opening.");
       }
       manager.openCamera(cameraId, stateCallback, backgroundHandler);
+
     } catch (final CameraAccessException e) {
       LOGGER.e(e, "Exception!");
     } catch (final InterruptedException e) {
@@ -568,4 +574,5 @@ public class CameraConnectionFragment extends Fragment {
           .create();
     }
   }
+
 }

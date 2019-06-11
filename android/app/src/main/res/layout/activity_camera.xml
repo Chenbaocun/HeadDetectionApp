@@ -20,19 +20,18 @@
     android:layout_height="match_parent"
     android:background="#00000000">
 
-    <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:tools="http://schemas.android.com/tools"
+    <RelativeLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:background="@android:color/black"
         android:orientation="vertical">
 
-
         <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
             xmlns:tools="http://schemas.android.com/tools"
             android:id="@+id/container"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_alignParentRight="false"
             tools:context="org.tensorflow.demo.CameraActivity" />
 
         <android.support.v7.widget.Toolbar
@@ -40,13 +39,38 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:layout_alignParentTop="true"
+            android:layout_marginTop="0dp"
             android:background="@color/semi_transparent">
-
-            <ImageView
+            <!--<ImageView-->
+                <!--android:layout_width="wrap_content"-->
+                <!--android:layout_height="wrap_content"-->
+                <!--android:src="@mipmap/policeman"/>-->
+            <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:src="@drawable/tfl_logo" />
+                android:text="警察数数_φ(❐_❐✧"
+                android:textSize="20sp"
+                android:textColor="@color/qianlan"/>
+            <TextView
+                android:id="@+id/total_detected_hide"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="1"
+                android:textColor="@color/semi_transparent"
+                android:textSize="20sp"
+                android:gravity="right"
+                android:visibility="invisible"/>
+            <TextView
+                android:id="@+id/total_detected"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="当前总人数:"
+                android:textColor="@color/qmui_config_color_red"
+                android:textSize="20sp"
+                />
         </android.support.v7.widget.Toolbar>
+
+
 
     </RelativeLayout>
 

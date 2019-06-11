@@ -3,6 +3,11 @@
     <color name="colorPrimary">#98999b</color>
     <color name="colorPrimaryDark">#404041</color>
     <color name="colorAccent">#d2d0d1</color>
+    <!--<color name="colorAccent">#D81B60</color>-->
+    <color name="qianlan">#3ae6e9</color>
+    <color name="black_overlay">#66000000</color>
+    <color name="shenlan">#fa3343f9</color>
+    <color name="gray">#ffffff</color>
 
     <color name="semi_transparent">#66000000</color>
 </resources>
