@@ -8,7 +8,7 @@
         <item name="colorAccent">@color/colorAccent</item>
     </style>
 
-    <style name="AppThemeToolbar" parent="Theme.AppCompat.Light.NoActionBar">
+    <style name="AppThemeToolbar" parent="Theme.AppCompat.Light">
         <!-- Customize your theme here. -->
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
@@ -16,5 +16,11 @@
         <item name="android:windowContentOverlay">@null</item>
         <item name="elevation">0dp</item>
     </style>
+    <style name="AppTheme_Compat" parent="QMUI.Compat">
+        <item name="colorPrimary">@color/qianlan</item>
+        <item name="colorPrimaryDark">@color/qianlan</item>
+        <item name="colorAccent">@color/colorAccent</item>
+    </style>
+
 
 </resources>

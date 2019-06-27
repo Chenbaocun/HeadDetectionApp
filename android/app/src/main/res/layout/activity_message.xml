@@ -1,9 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
-
+    android:layout_height="match_parent"
+    tools:context=".messageActivity">
     <android.support.v7.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -12,20 +13,18 @@
         android:layout_marginTop="0dp"
         android:background="@color/qianlan">
 
-
     </android.support.v7.widget.Toolbar>
 
-    <Button
-        android:id="@+id/change"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentRight="true"
-        android:layout_marginRight="10sp"
-        android:layout_marginTop="3sp"
-        android:background="@color/qianlan"
-        android:textSize="15sp"
-        android:paddingTop="1sp"
-        android:text="切换场景" />
+
+
+        <TextView
+            android:id="@+id/textView"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="   来自云平台的通知"
+            android:textSize="20sp"
+            android:paddingTop="2sp"
+            android:layout_marginTop="10sp"/>
 
     <TextView
         android:id="@+id/target"
@@ -35,8 +34,9 @@
         android:layout_centerVertical="true"
         android:layout_centerHorizontal="true"
         android:layout_marginTop="100sp"
-        android:text="请选择识别场景"
+        android:text=""
         android:textColor="@color/black_overlay"
-        android:textSize="50sp" />
+        android:textSize="20sp" />
+
 
 </RelativeLayout>

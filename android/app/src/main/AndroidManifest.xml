@@ -23,7 +23,8 @@
         android:roundIcon="@mipmap/policeman"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
-        <activity android:name=".thresholdActivity"></activity>
+        <activity android:name=".messageActivity"></activity>
+        <activity android:name=".thresholdActivity" />
         <activity android:name=".settingActivity" />
         <activity android:name=".aboutActivity" />
         <activity android:name=".login" />

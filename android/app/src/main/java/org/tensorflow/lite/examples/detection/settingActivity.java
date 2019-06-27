@@ -31,8 +31,12 @@ public class settingActivity extends AppCompatActivity {
                                 @Override
                                 public void onClick(QMUIDialog dialog, int index) {
                                     login.saveLoginInfo(settingActivity.this,"","");
+                                    MainActivity.saveThreshold(settingActivity.this,"");
+                                    AFragment.saveTarget(settingActivity.this,"");
+
                                     dialog.dismiss();
                                     Intent intent=new Intent(settingActivity.this,MainActivity.class);
+
 //                                    intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK|Intent.FLAG_ACTIVITY_NEW_TASK);
                                     startActivity(intent);
                                 }

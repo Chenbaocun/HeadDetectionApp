@@ -10,6 +10,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
+import android.view.KeyEvent;
 import android.view.View;
 import android.widget.Toast;
 
@@ -28,6 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
+    private long exitTime=0;
 //底部状态栏预设参数
     private EasyNavigationBar navigationBar;
     private String[] tabText = {"首页", "发现", "检测", "消息", "我的"};
@@ -47,6 +49,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPre=getSharedPreferences("config", MODE_PRIVATE);
         final String username=sharedPre.getString("username", "");
         final String password=sharedPre.getString("password", "");
+        BFragment.saveImageIndex(MainActivity.this,"0");//把索引置为1
         if(username!="" && password !="" ) {
             new AsyncTask<String, Void, String>() {
                 @Override
@@ -116,10 +119,15 @@ public class MainActivity extends AppCompatActivity {
                             SharedPreferences sharedPre=getSharedPreferences("config", MODE_PRIVATE);
                             final String username=sharedPre.getString("username", "");
                             final String password=sharedPre.getString("password", "");
+                            final String target=sharedPre.getString("target", "");
                             if(username=="" && password =="" ){
                                 Toast.makeText(MainActivity.this, "请您登陆", Toast.LENGTH_SHORT).show();
                                 Intent intent=new Intent(MainActivity.this, login.class);
                                 startActivity(intent);
+                                return true;
+                            }
+                            if(target==""){
+                                Toast.makeText(MainActivity.this, "请您设置检测场景", Toast.LENGTH_SHORT).show();
                                 return true;
                             }
 //                            请求最新的threshold
@@ -188,7 +196,23 @@ public class MainActivity extends AppCompatActivity {
                             });
                             return true;//阻止fragment跳转
                         }
-                        if(position==4){
+                        if(position==3){
+                            SharedPreferences sharedPre=getSharedPreferences("config", MODE_PRIVATE);
+                            final String username=sharedPre.getString("username", "");
+                            final String password=sharedPre.getString("password", "");
+                            if(username=="" && password =="" ){
+                                Toast.makeText(MainActivity.this, "请您登陆", Toast.LENGTH_SHORT).show();
+                                Intent intent=new Intent(MainActivity.this, login.class);
+                                startActivity(intent);
+                                return true;
+                            }
+                            navigationBar.clearMsgPoint(2);
+                            return false;
+                        }
+
+
+                        if(position==4 || position==1 || position==3){
+
                             SharedPreferences sharedPre=getSharedPreferences("config", MODE_PRIVATE);
                             final String username=sharedPre.getString("username", "");
                             final String password=sharedPre.getString("password", "");
@@ -202,9 +226,11 @@ public class MainActivity extends AppCompatActivity {
                         return false;
                     }
                 })
-                .canScroll(true)
+                .canScroll(false)
                 .mode(EasyNavigationBar.MODE_ADD)
                 .build();
+        navigationBar.setMsgPointCount(2, 1);
+
     }
     public static void saveThreshold(Context context, String threshold){
         //获取SharedPreferences对象
@@ -259,6 +285,29 @@ public class MainActivity extends AppCompatActivity {
             }
         }.execute("http://39.96.169.188/set_threshold_app/");
 
+    }
+
+
+    //    监听返回键
+    @Override
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+            exit();
+            return false;
+        }
+        return super.onKeyDown(keyCode, event);
+    }
+
+    private void exit() {
+        if ((System.currentTimeMillis() - exitTime) > 2000) {
+            Toast.makeText(getApplicationContext(),
+                    "再按一次退出程序", Toast.LENGTH_SHORT).show();
+            exitTime = System.currentTimeMillis();
+        }
+        else{
+            finish();
+            System.exit(0);
+        }
     }
 }
 

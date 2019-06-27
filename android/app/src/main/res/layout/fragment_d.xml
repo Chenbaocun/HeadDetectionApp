@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <TextView
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:background="#20616161"
-        android:gravity="center"
-        android:text="这应该是一个展示消息的Fragment"
-        android:textColor="#ffffff"
-        android:textSize="20sp" />
+        android:layout_height="wrap_content">
+        <com.qmuiteam.qmui.widget.grouplist.QMUIGroupListView
+            android:id="@+id/groupListView2"
+            android:layout_width="match_parent"
+            android:layout_height="50dp" />
+    </ScrollView>
 
-</android.support.constraint.ConstraintLayout>
+</RelativeLayout>
